@@ -1,0 +1,42 @@
+name: Build SYSY FAMILY V63 IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build unsigned iPhone app
+        run: |
+          set -e
+          xcodebuild \
+            -project "SYSY FAMILY.xcodeproj" \
+            -scheme "SYSY FAMILY" \
+            -sdk iphoneos \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Package IPA
+        run: |
+          set -e
+          APP=$(find build/DerivedData/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -type d | head -1)
+          test -n "$APP"
+          mkdir -p build/Payload
+          cp -R "$APP" build/Payload/
+          cd build
+          zip -qry "SYSY_FAMILY_V63_unsigned.ipa" Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SYSY-FAMILY-V63-IPA
+          path: build/SYSY_FAMILY_V63_unsigned.ipa
+          retention-days: 7
