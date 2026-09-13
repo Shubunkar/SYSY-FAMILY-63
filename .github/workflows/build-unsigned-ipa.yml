@@ -14,12 +14,14 @@ jobs:
       - name: Build unsigned iPhone app
         run: |
           set -e
+          cd "SYSY_FAMILY_iPhone_App_v63_GITHUB_BUILD_READY_FIXED/SYSY_FAMILY_V63_HANDOVER"
+
           xcodebuild \
             -project "SYSY FAMILY.xcodeproj" \
             -scheme "SYSY FAMILY" \
             -sdk iphoneos \
             -configuration Release \
-            -derivedDataPath build/DerivedData \
+            -derivedDataPath "$GITHUB_WORKSPACE/build/DerivedData" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             build
@@ -27,10 +29,15 @@ jobs:
       - name: Package IPA
         run: |
           set -e
-          APP=$(find build/DerivedData/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -type d | head -1)
+
+          APP=$(find build/DerivedData/Build/Products/Release-iphoneos \
+            -maxdepth 1 -name '*.app' -type d | head -1)
+
           test -n "$APP"
+
           mkdir -p build/Payload
           cp -R "$APP" build/Payload/
+
           cd build
           zip -qry "SYSY_FAMILY_V63_unsigned.ipa" Payload
 
